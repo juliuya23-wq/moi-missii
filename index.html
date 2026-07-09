@@ -320,7 +320,7 @@ const DEF_HABITS=[
   {id:'h6',e:'🎸',t:'Играть на гитаре',d:'30 минут'}
 ];
 const DEF={
-  name:'ИГРОК', pin:'1234', mode:'holiday',
+  name:'СТЕПАН', pin:'1234', mode:'holiday',
   xp:0, balance:0, earnedToday:0, earnedWeek:0, rubles:0,
   day:'', week:'',
   tasks:JSON.parse(JSON.stringify(HOLIDAY_TASKS)),
@@ -344,6 +344,7 @@ function load(){
   if(!s._m1){s._m1=true;s.habits=s.habits.filter(x=>x.t!=='Пить воду');}
   if(!s._m2){s._m2=true;s.rewards.forEach(r=>{if(r.t==='+30 минут экрана')r.t='+15 минут экрана';});}
   if(!s._m3){s._m3=true; s.rewards.forEach(r=>{ if(/минут экрана/.test(r.t))r.t="+10 минут экрана"; if(r.t==="Поход в кино"){r.t="Поход в кафе";r.e="☕";r.c=220;} }); s.rewards=s.rewards.filter(r=>r.t!=="Новая игрушка"); if(!s.habits.some(x=>x.t==="Играть на гитаре"))s.habits.push({id:"h_guitar",e:"🎸",t:"Играть на гитаре",d:"30 минут"}); }
+  if(!s._m4){s._m4=true; if(s.name==='ИГРОК')s.name='СТЕПАН';}
   if(s.rubles===undefined)s.rubles=0;
   rollover(s);save(s);return s;
 }
