@@ -275,6 +275,24 @@ body{font-weight:600;letter-spacing:-.1px}
 <canvas id="confetti"></canvas>
 <div id="cbtext"><div class="box"><div class="big" id="cbBig">УРА!</div><div class="sub" id="cbSub"></div></div></div>
 
+<style>
+#modal{position:fixed;inset:0;background:rgba(15,5,35,.72);z-index:200;display:none;align-items:center;justify-content:center;padding:20px}
+#modal.on{display:flex}
+#modal .mbox{width:100%;max-width:360px;background:#2c1a55;border:2px solid var(--gold);border-radius:20px;padding:18px;box-shadow:var(--shadow)}
+#modal .mmsg{font-size:15px;font-weight:600;color:#fff;margin-bottom:12px;line-height:1.35}
+#modal .minput{width:100%;background:#241247;border:2px solid var(--line);border-radius:12px;color:#fff;font-family:'Sora',system-ui,sans-serif;font-size:16px;padding:11px 12px;margin-bottom:14px;outline:none}
+#modal .minput:focus{border-color:var(--gold)}
+#modal .mbtns{display:flex;gap:10px}
+#modal .mbtn{flex:1;border:none;border-radius:12px;padding:12px;font-family:'Sora',system-ui,sans-serif;font-weight:700;font-size:15px;cursor:pointer}
+#modal .mbtn.ok{background:linear-gradient(180deg,#ffe15a,var(--gold));color:#3a1f6e}
+#modal .mbtn.cancel{background:#3a2568;color:#c3b2ec}
+</style>
+<div id="modal"><div class="mbox">
+  <div class="mmsg" id="mMsg"></div>
+  <input class="minput" id="mInput" autocomplete="off">
+  <div class="mbtns"><button class="mbtn cancel" id="mCancel">Отмена</button><button class="mbtn ok" id="mOk">ОК</button></div>
+</div></div>
+
 <script>
 const KEY='kid_dash_v2';
 const PV={task:10,habit:5,mood:2,perfect:15,streak7:20};
@@ -404,9 +422,9 @@ function exchange(){
   state.balance-=RUB_STEP; state.rubles=(state.rubles||0)+RUB_PAY;
   save();render();celebrate('ОБМЕН! 💰','+'+RUB_PAY+' ₽ в копилку');
 }
-function payrub(){
-  if(!state.rubles){alert('Пока нечего выплачивать');return;}
-  if(confirm('Выплатить '+state.rubles+' ₽ ребёнку и обнулить счётчик?')){state.rubles=0;save();render();renderParent();}
+async function payrub(){
+  if(!state.rubles){await uiAlert('Пока нечего выплачивать');return;}
+  if(await uiConfirm('Выплатить '+state.rubles+' ₽ ребёнку и обнулить счётчик?')){state.rubles=0;save();render();renderParent();}
 }
 
 /* ---- render ---- */
@@ -495,13 +513,13 @@ document.addEventListener('click',e=>{
   else if(a==='reset')resetAll();
 });
 
-function editName(){const n=prompt('Имя игрока:',state.name);if(n&&n.trim()){state.name=n.trim().slice(0,14).toUpperCase();save();render();}}
+async function editName(){const n=await uiPrompt('Имя игрока:',state.name);if(n&&n.trim()){state.name=n.trim().slice(0,14).toUpperCase();save();render();}}
 
 /* ---- parent mode ---- */
-function openParent(){
-  const pin=prompt('PIN родителя (по умолчанию 1234):');
+async function openParent(){
+  const pin=await uiPrompt('PIN родителя (по умолчанию 1234):','');
   if(pin===null)return;
-  if(pin!==state.pin){alert('Неверный PIN');return;}
+  if(pin!==state.pin){await uiAlert('Неверный PIN');return;}
   renderParent();$('overlay').classList.add('on');
 }
 function renderParent(){
@@ -534,28 +552,28 @@ function renderParent(){
     <button class="pbtn y" data-act="closeParent">✅ Готово</button>
     <div class="smallnote">Данные хранятся только на этом устройстве</div>`;
 }
-function addItem(field,defE,label){
-  const t=prompt(label+':');if(!t||!t.trim())return;
-  const e=prompt('Эмодзи (например 📚):',defE)||defE;
-  const d=prompt('Пояснение (например «20 минут», можно оставить пустым):','')||'';
+async function addItem(field,defE,label){
+  const t=await uiPrompt(label+':','');if(!t||!t.trim())return;
+  const e=await uiPrompt('Эмодзи (например 📚):',defE)||defE;
+  const d=await uiPrompt('Пояснение (например «20 минут», можно оставить пустым):','')||'';
   const it={id:field[0]+Date.now(),e:e.trim().slice(0,3),t:t.trim().slice(0,40)};
   if(d.trim())it.d=d.trim().slice(0,90);
   state[field].push(it);
   save();render();renderParent();
 }
-function switchMode(){
+async function switchMode(){
   const to=state.mode==='holiday'?'school':'holiday';
   const label=to==='holiday'?'Каникулы':'Учёба';
-  if(!confirm('Переключить на режим «'+label+'»? Список задач заменится на набор для этого режима. Привычки и очки не изменятся.'))return;
+  if(!(await uiConfirm('Переключить на режим «'+label+'»? Список задач заменится на набор для этого режима. Привычки и очки не изменятся.')))return;
   state.mode=to;
   state.tasks=JSON.parse(JSON.stringify(to==='holiday'?HOLIDAY_TASKS:SCHOOL_TASKS));
   save();render();renderParent();
 }
-function addReward(){
-  const t=prompt('Название награды:');if(!t||!t.trim())return;
-  const e=prompt('Эмодзи:','🎁')||'🎁';
-  const c=parseInt(prompt('Цена в кристаллах 💎:','50'),10);
-  if(isNaN(c)||c<1){alert('Нужна цена числом');return;}
+async function addReward(){
+  const t=await uiPrompt('Название награды:','');if(!t||!t.trim())return;
+  const e=await uiPrompt('Эмодзи:','🎁')||'🎁';
+  const c=parseInt(await uiPrompt('Цена в кристаллах 💎:','50'),10);
+  if(isNaN(c)||c<1){await uiAlert('Нужна цена числом');return;}
   state.rewards.push({id:'r'+Date.now(),e:e.trim().slice(0,3),t:t.trim().slice(0,40),c});
   save();render();renderParent();
 }
@@ -563,19 +581,19 @@ function delItem(field,id){
   state[field]=state[field].filter(x=>x.id!==id);save();render();renderParent();
 }
 function deliver(i){state.pending.splice(i,1);save();render();renderParent();}
-function adjustPoints(){
-  const n=parseInt(prompt('Изменить очки на (например 50 или -20):','0'),10);
+async function adjustPoints(){
+  const n=parseInt(await uiPrompt('Изменить очки на (например 50 или -20):','0'),10);
   if(isNaN(n)||n===0)return;
   state.xp=Math.max(0,state.xp+n);state.balance=Math.max(0,state.balance+n);
   save();render();renderParent();
 }
-function changePin(){
-  const p=prompt('Новый PIN (4 цифры):',state.pin);
-  if(p&&/^\d{3,6}$/.test(p)){state.pin=p;alert('PIN обновлён');}
-  else if(p!==null)alert('PIN — 3–6 цифр');
+async function changePin(){
+  const p=await uiPrompt('Новый PIN (4 цифры):',state.pin);
+  if(p&&/^\d{3,6}$/.test(p)){state.pin=p;save();await uiAlert('PIN обновлён');}
+  else if(p!==null)await uiAlert('PIN — 3–6 цифр');
 }
-function resetAll(){
-  if(confirm('Сбросить ВСЕ данные и начать заново?')){
+async function resetAll(){
+  if(await uiConfirm('Сбросить ВСЕ данные и начать заново?')){
     localStorage.removeItem(KEY);location.reload();
   }
 }
@@ -598,6 +616,27 @@ function celebrate(big,sub){
     else{ctx.clearRect(0,0,cv.width,cv.height);cv.style.display='none';}
   })();
 }
+
+/* ---- in-app dialogs (Telegram WebView blocks native prompt/alert/confirm) ---- */
+function modalCore(o){
+  return new Promise(res=>{
+    const m=$('modal'),inp=$('mInput'),ok=$('mOk'),cancel=$('mCancel');
+    $('mMsg').textContent=o.msg||'';
+    if(o.withInput){inp.style.display='block';inp.value=o.defVal!=null?o.defVal:'';}
+    else inp.style.display='none';
+    ok.textContent=o.okText||'ОК';
+    cancel.style.display=o.showCancel?'block':'none';
+    m.classList.add('on');
+    if(o.withInput)setTimeout(()=>{inp.focus();inp.select();},60);
+    function done(v){m.classList.remove('on');ok.onclick=null;cancel.onclick=null;inp.onkeydown=null;res(v);}
+    ok.onclick=()=>done(o.withInput?inp.value:true);
+    cancel.onclick=()=>done(o.withInput?null:false);
+    inp.onkeydown=e=>{if(e.key==='Enter')done(inp.value);};
+  });
+}
+function uiAlert(msg){return modalCore({msg,showCancel:false});}
+function uiConfirm(msg){return modalCore({msg,showCancel:true});}
+function uiPrompt(msg,defVal){return modalCore({msg,withInput:true,defVal,showCancel:true});}
 
 render();
 
