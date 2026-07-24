@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Трекер целей · 12 недель</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  :root{
+    /* палитра книги «12 недель в году» (МИФ): жёлтый фон, фиолет */
+    --bg:#F7C61C; --card:#ffffff; --card2:#FBF1CE; --line:#E6C862;
+    --tx:#3A2568; --mut:#7A6B92; --acc:#7A4FB5; --acc2:#4E2E8F; --warn:#e08a00; --bad:#d6455a;
+  }
+  body{ background:var(--bg); color:var(--tx); font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; padding:16px 14px 40px; max-width:560px; margin:0 auto; }
+  h1{ font-size:22px; font-weight:800; letter-spacing:-.3px; }
+  .sub{ color:var(--mut); font-size:13px; margin-top:2px; }
+  .dart{ display:inline-block; animation:dartMove 2.2s ease-in-out infinite; }
+  @keyframes dartMove{ 0%{transform:translateX(0) scale(1) rotate(0)} 25%{transform:translateX(5px) scale(1.15) rotate(8deg)} 50%{transform:translateX(0) scale(1) rotate(0)} 75%{transform:translateX(-5px) scale(1.15) rotate(-8deg)} 100%{transform:translateX(0) scale(1) rotate(0)} }
+  .setbtn{ background:#fff; color:var(--acc); border:1px solid var(--line); border-radius:11px; padding:9px 12px; font-size:13px; font-weight:700; white-space:nowrap; }
+  .top{ display:flex; align-items:center; gap:14px; background:#fff; border:1px solid var(--line); border-radius:20px; padding:16px; margin:14px 0; box-shadow:0 4px 16px rgba(58,37,104,.08); }
+  .ring{ width:78px; height:78px; flex:none; }
+  .topinfo .wk{ font-size:24px; font-weight:800; }
+  .topinfo .dl{ color:var(--mut); font-size:12px; margin-top:3px; }
+  .sect{ font-size:12px; text-transform:uppercase; letter-spacing:.8px; color:var(--mut); margin:20px 4px 10px; font-weight:700; }
+  .goal{ background:var(--card); border:1px solid var(--line); border-radius:16px; padding:14px; margin-bottom:10px; }
+  .goal .gt{ display:flex; justify-content:space-between; align-items:flex-start; gap:10px; }
+  .goal .name{ font-size:16px; font-weight:700; line-height:1.25; }
+  .goal .pct{ font-size:15px; font-weight:800; color:var(--acc); flex:none; }
+  .bar{ height:9px; background:var(--card2); border-radius:6px; overflow:hidden; margin:11px 0 8px; }
+  .fill{ height:100%; background:linear-gradient(90deg,#9A6FD4,var(--acc2)); border-radius:6px; transition:width .35s; }
+  .grow{ display:flex; align-items:center; gap:8px; color:var(--mut); font-size:13px; }
+  .grow input{ width:78px; background:var(--card2); border:1px solid var(--line); color:var(--tx); border-radius:9px; padding:7px 8px; font-size:14px; text-align:center; }
+  .mini{ font-size:12px; color:var(--mut); }
+  .tag{ display:inline-block; font-size:11px; font-weight:700; padding:2px 8px; border-radius:20px; background:var(--card2); color:var(--mut); }
+  .achv{ background:var(--card2); border:1px solid var(--line); color:var(--acc); border-radius:11px; padding:9px 12px; font-size:14px; font-weight:700; width:100%; margin-top:6px; }
+  .achv.on{ background:var(--acc); color:#fff; }
+  .row{ display:flex; gap:8px; margin-top:10px; }
+  button{ font-family:inherit; cursor:pointer; border:none; }
+  .btn{ background:var(--acc); color:#fff; border-radius:11px; padding:12px 14px; font-size:15px; font-weight:700; width:100%; }
+  .btn.sec{ background:var(--card2); color:var(--tx); border:1px solid var(--line); }
+  .btn.gh{ background:transparent; color:var(--mut); font-size:13px; padding:8px; font-weight:600; }
+  .add{ background:var(--card2); border:1px dashed var(--line); color:var(--acc); border-radius:14px; padding:13px; width:100%; font-size:15px; font-weight:700; margin-top:4px; }
+  .weekbox{ background:var(--card); border:1px solid var(--line); border-radius:16px; padding:15px; }
+  .wkhead{ display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
+  .wkhead .nav{ display:flex; gap:6px; }
+  .wkhead .nav button{ background:var(--card2); border:1px solid var(--line); color:var(--tx); width:34px; height:34px; border-radius:10px; font-size:17px; }
+  .gblock{ border-top:1px solid var(--line); padding-top:12px; margin-top:12px; }
+  .cl{ display:flex; justify-content:space-between; font-size:15px; font-weight:700; margin-bottom:8px; }
+  .cl .cv{ color:var(--acc); }
+  .act{ background:var(--card2); border-radius:12px; padding:10px; margin:8px 0; }
+  .actl{ display:flex; align-items:center; gap:8px; }
+  .actl .aw{ flex:none; width:20px; height:20px; accent-color:var(--acc); }
+  .actl input.tin{ flex:1; background:#fff; border:1px solid var(--line); color:var(--tx); border-radius:9px; padding:8px 10px; font-size:14px; }
+  .actl .tdel{ background:transparent; color:var(--bad); font-size:14px; width:24px; flex:none; }
+  .dtoggle{ display:flex; align-items:center; gap:6px; font-size:12px; color:var(--mut); margin-top:8px; user-select:none; }
+  .dtoggle input{ width:16px; height:16px; accent-color:var(--acc); }
+  .cal{ display:flex; gap:4px; margin-top:8px; }
+  .day{ flex:1; text-align:center; }
+  .day .dn{ font-size:10px; color:var(--mut); margin-bottom:3px; }
+  .day .dc{ height:30px; border-radius:8px; background:#fff; border:1px solid var(--line); display:flex; align-items:center; justify-content:center; font-size:14px; color:var(--acc); font-weight:800; }
+  .day .dc.on{ background:var(--acc); color:#fff; border-color:var(--acc); }
+  .addtask{ background:transparent; border:1px dashed var(--line); color:var(--acc); border-radius:10px; padding:9px; width:100%; font-size:13px; font-weight:700; margin-top:6px; }
+  .warea{ width:100%; background:var(--card2); border:1px solid var(--line); color:var(--tx); border-radius:11px; padding:11px; font-size:14px; font-family:inherit; resize:vertical; min-height:64px; }
+  .rlabel{ font-size:13px; font-weight:700; color:var(--tx); margin:16px 0 7px; }
+  .weekscore{ text-align:center; background:var(--card2); border-radius:12px; padding:12px; margin-top:14px; }
+  .weekscore b{ font-size:26px; font-weight:800; color:var(--acc); }
+  .foot{ text-align:center; color:var(--mut); font-size:12px; margin-top:26px; line-height:1.6; }
+  .foot a{ color:var(--acc); text-decoration:none; font-weight:700; }
+  .modal{ position:fixed; inset:0; background:#0007; display:none; align-items:flex-end; z-index:50; }
+  .modal.on{ display:flex; }
+  .sheet{ background:var(--card); width:100%; max-width:560px; margin:0 auto; border-radius:20px 20px 0 0; padding:20px 16px 30px; }
+  .sheet h3{ font-size:18px; margin-bottom:6px; }
+  .field{ margin-bottom:12px; }
+  .field label{ display:block; font-size:13px; color:var(--mut); margin-bottom:5px; }
+  .field input{ width:100%; background:var(--card2); border:1px solid var(--line); color:var(--tx); border-radius:11px; padding:12px; font-size:15px; }
+  .del{ color:var(--bad); background:transparent; font-size:13px; font-weight:700; padding:6px; }
+</style>
+</head>
+<body>
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;">
+    <div>
+      <h1>Цели на 12 недель</h1>
+      <div class="sub"><span class="dart">🎯</span> <span id="subtxt">Твой спринт к результату</span></div>
+    </div>
+    <button class="setbtn" onclick="openSettings()">⚙️ Настройки</button>
+  </div>
+
+  <div class="top">
+   <div style="text-align:center;flex:none">
+    <svg class="ring" viewBox="0 0 100 100">
+      <circle cx="50" cy="50" r="42" fill="none" stroke="#EBDDA6" stroke-width="9"/>
+      <circle id="ringfill" cx="50" cy="50" r="42" fill="none" stroke="url(#g)" stroke-width="9" stroke-linecap="round" transform="rotate(-90 50 50)" stroke-dasharray="264" stroke-dashoffset="264"/>
+      <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9A6FD4"/><stop offset="1" stop-color="#4E2E8F"/></linearGradient></defs>
+      <text id="ringtxt" x="50" y="56" text-anchor="middle" font-size="22" font-weight="800" fill="#3A2568">0%</text>
+    </svg>
+    <div class="mini" style="margin-top:2px;font-weight:700">Исполнение плана</div>
+   </div>
+    <div class="topinfo">
+      <div class="wk">Неделя <span id="curweek">1</span>/12</div>
+      <div class="dl" id="deadline">Финиш: —</div>
+      <div class="dl" style="margin-top:4px">🎯 Прогресс к целям: <b id="goalsprog" style="color:var(--acc)">0%</b></div>
+    </div>
+  </div>
+
+  <div class="weekbox" style="margin-bottom:4px">
+    <button class="btn sec" onclick="toggleHelp()" style="text-align:left;display:flex;justify-content:space-between;align-items:center">
+      <span>❓ Как пользоваться трекером</span><span id="hArrow">▾</span>
+    </button>
+    <div id="help" style="display:none;margin-top:12px;font-size:14px;line-height:1.6;">
+      <p><b>1. Поставь цели.</b> Жми «+ Добавить цель», впиши 2–5 целей. Измеримая (подписчики, кг, $) — укажи «сейчас/цель». Без числа (напр. «наладить режим») — оставь пустыми, будешь отмечать «достигнута».</p>
+      <p style="margin-top:9px"><b>2. Пропиши действия.</b> В «Чек-ин недели» под каждой целью жми «+ действие». Если действие ежедневное («шаги», «сторис») — включи «ежедневное», появится календарь недели Пн–Вс.</p>
+      <p style="margin-top:9px"><b>3. Отмечай в течение недели.</b> Сделал → ставь галочку. Кольцо «Исполнение плана» растёт само.</p>
+      <p style="margin-top:9px"><b>4. Воскресенье — обзор.</b> В блоке «Результат недели» по каждой цели впиши «Стало: …» (двигает «Прогресс к целям») и итог словами.</p>
+      <p style="margin-top:9px"><b>5. Листай недели</b> стрелками ‹ ›. Твой спринт — 12 недель. Каждые 12 недель = новый «год» 🎯</p>
+      <p style="margin-top:9px"><b>Суть:</b> ты управляешь действиями (галочки), а результат подтянется. Делай стабильно — и всё получится 💜</p>
+    </div>
+  </div>
+
+  <div class="sect">Мои цели</div>
+  <div id="goals"></div>
+  <button class="add" onclick="openGoal()">+ Добавить цель</button>
+
+  <div class="sect">Чек-ин недели</div>
+  <div class="weekbox">
+    <div class="wkhead">
+      <b>Неделя <span id="wkn">1</span></b>
+      <div class="nav">
+        <button onclick="shiftWeek(-1)">‹</button>
+        <button onclick="shiftWeek(1)">›</button>
+      </div>
+    </div>
+    <div class="mini">Отмечай выполненные действия. Для привычек включи «ежедневное» — появится календарь недели.</div>
+    <div id="checkins"></div>
+    <div class="weekscore">Исполнение недели: <b id="wkscore">0%</b></div>
+    <div class="mini" style="text-align:center;margin-top:8px">🗓 Воскресенье — день обзора: подведи результат по каждой цели и обнови цифры.</div>
+  </div>
+
+  <div class="sect">Метод</div>
+  <div class="weekbox">
+    <button class="btn sec" onclick="toggleMethod()" style="text-align:left;display:flex;justify-content:space-between;align-items:center">
+      <span>📘 Шпаргалка по методу «12 недель»</span><span id="mArrow">▾</span>
+    </button>
+    <div id="method" style="display:none;margin-top:12px;font-size:14px;line-height:1.6;">
+      <p><b>💡 Суть.</b> Живём не годами, а циклами по 12 недель. Год — слишком долго: дедлайны размываются, дела откладываются. 12 недель дают фокус и срочность.</p>
+      <p style="margin-top:10px"><b>⚙️ 5 практик (только вместе):</b><br>1. Видение — куда и ради чего.<br>2. Планирование — цель → действия.<br>3. Контроль — курс каждый день.<br>4. Измерение — считать % честно.<br>5. Время — планировать под приоритеты.</p>
+      <p style="margin-top:10px"><b>✅ Цели:</b> 2–5 из разных сфер, приоритет, реально. Формулировка чёткая, с измеримым результатом (где возможно).</p>
+      <p style="margin-top:10px"><b>🏃 Главное:</b> ты управляешь действиями, а не результатом. Делай действия каждую неделю → результат подтянется. По воскресеньям — обзор.</p>
+    </div>
+  </div>
+
+  <div class="foot">
+    Метод «12-недельный год» 🎯<br>
+    Трекер от Юлии · <a href="https://instagram.com/juliya.lipa" target="_blank">@juliya.lipa</a>
+  </div>
+
+  <!-- goal modal -->
+  <div class="modal" id="goalModal">
+    <div class="sheet">
+      <h3 id="goalTitle">Новая цель</h3>
+      <div class="mini" style="margin-bottom:14px">Если цель измеримая — впиши «сейчас» и «цель». Если нет (напр. «наладить режим») — оставь пустыми, будешь отмечать «достигнута».</div>
+      <div class="field"><label>Цель (чётко и конкретно)</label><input id="gName" placeholder="Напр. Привлечь 100 подписчиков"></div>
+      <div class="field"><label>Единица (необязательно)</label><input id="gUnit" placeholder="подписчиков / кг / рилсов / $"></div>
+      <div class="row">
+        <div class="field" style="flex:1"><label>Сейчас</label><input id="gCur" type="number" inputmode="decimal" placeholder="0"></div>
+        <div class="field" style="flex:1"><label>Цель (число)</label><input id="gTgt" type="number" inputmode="decimal" placeholder="напр. 100"></div>
+      </div>
+      <button class="btn" onclick="saveGoal()">Сохранить</button>
+      <button class="del" id="delBtn" onclick="deleteGoal()" style="display:none;width:100%;margin-top:8px;">Удалить цель</button>
+      <button class="btn gh" onclick="closeModal('goalModal')">Отмена</button>
+    </div>
+  </div>
+
+  <!-- settings modal -->
+  <div class="modal" id="setModal">
+    <div class="sheet">
+      <h3>Настройки</h3>
+      <div class="field"><label>Твоё имя (необязательно)</label><input id="sName" placeholder="Юлия"></div>
+      <div class="field"><label>Дата старта 12 недель</label><input id="sStart" type="date"></div>
+      <button class="btn" onclick="saveSettings()">Сохранить</button>
+      <button class="del" onclick="resetAll()" style="width:100%;margin-top:8px;">Сбросить всё</button>
+      <button class="btn gh" onclick="closeModal('setModal')">Закрыть</button>
+    </div>
+  </div>
+
+<script>
+const DAY=86400000, LS='tracker12_v2', DN=['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+let S = load();
+let editId=null, viewWeek=null, actSeq=0;
+
+function load(){
+  try{ const d=JSON.parse(localStorage.getItem(LS)); if(d) return d; }catch(e){}
+  return { name:'', start:todayISO(), goals:[], weeks:{} };
+}
+function save(){ localStorage.setItem(LS, JSON.stringify(S)); }
+function todayISO(){ const d=new Date(); return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate()); }
+function p(n){ return (n<10?'0':'')+n; }
+function uid(pfx){ actSeq++; return (pfx||'i')+Math.floor(performance.now())+'_'+actSeq; }
+
+function curWeek(){ const st=new Date(S.start+'T00:00:00'); let w=Math.floor(Math.floor((Date.now()-st.getTime())/DAY)/7)+1; return Math.min(12,Math.max(1,w)); }
+function endDate(){ const st=new Date(S.start+'T00:00:00'); return new Date(st.getTime()+83*DAY); }
+function daysLeft(){ return Math.ceil((endDate().getTime()-Date.now())/DAY); }
+
+/* ---- results ---- */
+function goalResultFrac(g){
+  if(g.target && g.target>0){ let v=(g.current||0)/g.target; return Math.min(1,Math.max(0,v)); }
+  return g.achieved?1:0;
+}
+/* ---- execution ---- */
+function doneVal(w,aid){ const wk=S.weeks[w]; return (wk&&wk.done)?wk.done[aid]:undefined; }
+function setDone(w,aid,val){ if(!S.weeks[w])S.weeks[w]={done:{}}; if(!S.weeks[w].done)S.weeks[w].done={}; S.weeks[w].done[aid]=val; save(); }
+function actionFrac(w,a){ const v=doneVal(w,a.id); if(a.daily){ if(!Array.isArray(v))return 0; return v.filter(Boolean).length/7; } return v===true?1:0; }
+function goalWeekPct(g,w){ if(!g.actions||!g.actions.length)return 0; let s=0; g.actions.forEach(a=>s+=actionFrac(w,a)); return Math.round(s/g.actions.length*100); }
+function weekExec(w){ if(!S.goals.length)return 0; let s=0; S.goals.forEach(g=>s+=goalWeekPct(g,w)); return Math.round(s/S.goals.length); }
+function overallExecution(){ let s=0; for(let w=1;w<=12;w++)s+=weekExec(w); return Math.round(s/12); }
+
+function render(){
+  if(viewWeek===null) viewWeek=curWeek();
+  document.getElementById('subtxt').textContent = S.name? S.name+', твой спринт к результату' : 'Твой спринт к результату';
+  document.getElementById('curweek').textContent = curWeek();
+  const e=endDate();
+  document.getElementById('deadline').textContent = 'Финиш: '+e.getDate()+' '+['янв','фев','мар','апр','мая','июн','июл','авг','сен','окт','ноя','дек'][e.getMonth()]+' · осталось '+Math.max(0,daysLeft())+' дн.';
+
+  const exec=overallExecution();
+  document.getElementById('ringfill').setAttribute('stroke-dashoffset', 264-(264*exec/100));
+  document.getElementById('ringtxt').textContent = exec+'%';
+  let gp=0; if(S.goals.length) gp=Math.round(S.goals.reduce((a,g)=>a+goalResultFrac(g),0)/S.goals.length*100);
+  document.getElementById('goalsprog').textContent = gp+'%';
+
+  const gc=document.getElementById('goals'); gc.innerHTML='';
+  if(!S.goals.length){ gc.innerHTML='<div class="goal mini" style="text-align:center">Пока нет целей. Добавь 2–5 целей из разных сфер: блог, финансы, здоровье, хобби…</div>'; }
+  S.goals.forEach(g=>{
+    const rf=Math.round(goalResultFrac(g)*100);
+    const meas=(g.target&&g.target>0);
+    const d=document.createElement('div'); d.className='goal';
+    let body=`<div class="gt"><div><div class="name">${esc(g.title)}</div><div style="margin-top:4px"><span class="tag">${meas?'📊 измеримая':'✅ по факту'}</span></div></div><div class="pct">${rf}%</div></div>
+      <div class="bar"><div class="fill" style="width:${rf}%"></div></div>`;
+    if(meas){
+      body+=`<div class="row" style="justify-content:space-between;align-items:center">
+        <div class="grow"><input type="number" inputmode="decimal" value="${g.current||0}" onchange="upd('${g.id}',this.value)"><span>из ${g.target} ${esc(g.unit||'')}</span></div>
+        <button class="btn gh" onclick="openGoal('${g.id}')">изменить</button></div>`;
+    } else {
+      body+=`<button class="achv ${g.achieved?'on':''}" onclick="toggleAchieved('${g.id}')">${g.achieved?'✅ Цель достигнута':'Отметить достигнутой'}</button>
+        <div style="text-align:right"><button class="btn gh" onclick="openGoal('${g.id}')">изменить</button></div>`;
+    }
+    d.innerHTML=body; gc.appendChild(d);
+  });
+  renderWeek();
+}
+
+function renderWeek(){
+  document.getElementById('wkn').textContent=viewWeek;
+  const cc=document.getElementById('checkins'); cc.innerHTML='';
+  if(!S.goals.length){ cc.innerHTML='<div class="mini" style="margin-top:10px">Сначала добавь цели ↑</div>'; document.getElementById('wkscore').textContent='0%'; return; }
+  S.goals.forEach(g=>{
+    const blk=document.createElement('div'); blk.className='gblock';
+    let h=`<div class="cl"><span>${esc(g.title)}</span><span class="cv">${goalWeekPct(g,viewWeek)}%</span></div>`;
+    (g.actions||[]).forEach((a,ai)=>{
+      h+=`<div class="act"><div class="actl">`;
+      if(!a.daily){ const on=doneVal(viewWeek,a.id)===true; h+=`<input class="aw" type="checkbox" ${on?'checked':''} onchange="toggleWeekly('${g.id}','${a.id}')">`; }
+      h+=`<input class="tin" value="${esc(a.text)}" placeholder="действие..." onchange="editAction('${g.id}',${ai},this.value)">
+          <button class="tdel" onclick="delAction('${g.id}',${ai})">✕</button></div>
+          <label class="dtoggle"><input type="checkbox" ${a.daily?'checked':''} onchange="toggleDaily('${g.id}',${ai})"> ежедневное (календарь недели)</label>`;
+      if(a.daily){
+        const arr=Array.isArray(doneVal(viewWeek,a.id))?doneVal(viewWeek,a.id):[0,0,0,0,0,0,0];
+        h+=`<div class="cal">`;
+        for(let di=0;di<7;di++){ h+=`<div class="day"><div class="dn">${DN[di]}</div><div class="dc ${arr[di]?'on':''}" onclick="toggleDay('${g.id}','${a.id}',${di})">${arr[di]?'✓':''}</div></div>`; }
+        h+=`</div>`;
+      }
+      h+=`</div>`;
+    });
+    h+=`<button class="addtask" onclick="addAction('${g.id}')">+ действие</button>`;
+    const res=(S.weeks[viewWeek]&&S.weeks[viewWeek].results&&S.weeks[viewWeek].results[g.id])?S.weeks[viewWeek].results[g.id]:'';
+    const measW=(g.target&&g.target>0);
+    h+=`<div class="rlabel">🏁 Результат недели по цели</div>`;
+    if(measW){ h+=`<div class="grow" style="margin-bottom:8px"><span>Стало:</span><input type="number" inputmode="decimal" value="${g.current||0}" onchange="upd('${g.id}',this.value)"><span>из ${g.target} ${esc(g.unit||'')} → двигает прогресс ↑</span></div>`; }
+    else { h+=`<button class="achv ${g.achieved?'on':''}" style="margin-bottom:8px" onclick="toggleAchieved('${g.id}')">${g.achieved?'✅ Цель достигнута':'Отметить достигнутой'}</button>`; }
+    h+=`<textarea class="warea" placeholder="Итог словами: что получилось, вывод..." onchange="resultFor('${g.id}',this.value)">${esc(res)}</textarea>`;
+    blk.innerHTML=h; cc.appendChild(blk);
+  });
+  document.getElementById('wkscore').textContent=weekExec(viewWeek)+'%';
+}
+
+/* actions live on the goal (persist across weeks); completion lives per week */
+function findGoal(id){ return S.goals.find(x=>x.id===id); }
+function addAction(gid){ const g=findGoal(gid); if(!g.actions)g.actions=[]; g.actions.push({id:uid('a'),text:'',daily:false}); save(); renderWeek(); }
+function editAction(gid,ai,val){ const g=findGoal(gid); if(g.actions[ai]){ g.actions[ai].text=val; save(); } }
+function delAction(gid,ai){ const g=findGoal(gid); const a=g.actions[ai]; if(!a)return; if(a.text && !confirm('Удалить действие?'))return; g.actions.splice(ai,1); save(); render(); }
+function toggleDaily(gid,ai){ const g=findGoal(gid); const a=g.actions[ai]; a.daily=!a.daily; save(); renderWeek(); render(); }
+function toggleWeekly(gid,aid){ const cur=doneVal(viewWeek,aid)===true; setDone(viewWeek,aid,!cur); render(); }
+function toggleDay(gid,aid,di){ let arr=doneVal(viewWeek,aid); if(!Array.isArray(arr))arr=[0,0,0,0,0,0,0]; arr[di]=arr[di]?0:1; setDone(viewWeek,aid,arr); render(); }
+
+function resultFor(gid,val){ if(!S.weeks[viewWeek])S.weeks[viewWeek]={done:{}}; if(!S.weeks[viewWeek].results)S.weeks[viewWeek].results={}; S.weeks[viewWeek].results[gid]=val; save(); }
+function shiftWeek(d){ viewWeek+=d; if(viewWeek<1)viewWeek=1; if(viewWeek>12)viewWeek=12; renderWeek(); }
+function upd(id,val){ const g=findGoal(id); if(g){ g.current=parseFloat(val)||0; save(); render(); } }
+function toggleAchieved(id){ const g=findGoal(id); g.achieved=!g.achieved; save(); render(); }
+
+function openGoal(id){
+  editId=id||null; const m=document.getElementById('goalModal');
+  if(id){ const g=findGoal(id);
+    document.getElementById('goalTitle').textContent='Изменить цель';
+    gName.value=g.title; gUnit.value=g.unit||''; gCur.value=g.current||0; gTgt.value=g.target||'';
+    document.getElementById('delBtn').style.display='block';
+  } else {
+    if(S.goals.length>=5){ alert('Метод советует не больше 5 целей на 12 недель 🙂'); return; }
+    document.getElementById('goalTitle').textContent='Новая цель';
+    gName.value=''; gUnit.value=''; gCur.value=''; gTgt.value=''; document.getElementById('delBtn').style.display='none';
+  }
+  m.classList.add('on');
+}
+function saveGoal(){
+  const title=gName.value.trim(); if(!title){ alert('Впиши формулировку цели'); return; }
+  const tgt=parseFloat(gTgt.value)||0, cur=parseFloat(gCur.value)||0, unit=gUnit.value.trim();
+  if(editId){ const g=findGoal(editId); g.title=title; g.unit=unit; g.current=cur; g.target=tgt; }
+  else { S.goals.push({id:uid('g'),title,unit,current:cur,target:tgt,achieved:false,actions:[]}); }
+  save(); closeModal('goalModal'); render();
+}
+function deleteGoal(){ if(!editId)return; if(confirm('Удалить цель?')){ S.goals=S.goals.filter(x=>x.id!==editId); save(); closeModal('goalModal'); render(); } }
+
+function openSettings(){ sName.value=S.name||''; sStart.value=S.start; document.getElementById('setModal').classList.add('on'); }
+function saveSettings(){ S.name=sName.value.trim(); if(sStart.value)S.start=sStart.value; save(); closeModal('setModal'); viewWeek=curWeek(); render(); }
+function resetAll(){ if(confirm('Сбросить все цели и прогресс?')){ localStorage.removeItem(LS); S=load(); viewWeek=null; closeModal('setModal'); render(); } }
+function closeModal(id){ document.getElementById(id).classList.remove('on'); }
+function toggleMethod(){ const m=document.getElementById('method'),a=document.getElementById('mArrow'); const o=m.style.display==='none'; m.style.display=o?'block':'none'; a.textContent=o?'▴':'▾'; }
+function toggleHelp(){ const m=document.getElementById('help'),a=document.getElementById('hArrow'); const o=m.style.display==='none'; m.style.display=o?'block':'none'; a.textContent=o?'▴':'▾'; }
+function esc(s){ return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+try{ if(window.Telegram&&Telegram.WebApp){ Telegram.WebApp.ready(); Telegram.WebApp.expand(); } }catch(e){}
+render();
+</script>
+</body>
+</html>
