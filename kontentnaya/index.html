@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Контентная</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='24' fill='%23C9723B'/%3E%3Ctext x='50' y='68' font-size='54' text-anchor='middle'%3E%F0%9F%8D%AF%3C/text%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='24' fill='%23C9723B'/%3E%3Ctext x='50' y='68' font-size='54' text-anchor='middle'%3E%F0%9F%8D%AF%3C/text%3E%3C/svg%3E">
+<meta name="apple-mobile-web-app-title" content="Контентная">
+<meta name="theme-color" content="#C9723B">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+:root{
+  --bg:#F6F1EA; --card:#FFFFFF; --ink:#2A2724; --muted:#8A817A;
+  --accent:#C9723B; --accent-soft:#F7E4D6; --line:#EAE0D5;
+  --ok:#6E8B5E; --star:#E0A526;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  padding:16px 14px 40px; max-width:640px; margin-inline:auto;
+}
+h1{font-size:22px; margin:0 0 2px; letter-spacing:-.3px}
+.sub{color:var(--muted); font-size:13px; margin-bottom:18px}
+
+/* Идея дня */
+.today{
+  background:linear-gradient(160deg,#fff 0%,var(--accent-soft) 100%);
+  border:1px solid var(--line); border-radius:20px; padding:18px 16px; margin-bottom:14px;
+  box-shadow:0 6px 18px rgba(160,120,80,.08);
+}
+.today .label{font-size:11px; letter-spacing:1.4px; text-transform:uppercase; color:var(--accent); font-weight:700}
+.today .txt{font-size:19px; line-height:1.35; margin:8px 0 10px; font-weight:600}
+.today .show{font-size:14px; line-height:1.5; color:#5C544D}
+.today .cat{display:inline-block; font-size:12px; color:var(--muted); margin-top:10px}
+
+.row{display:flex; gap:8px; margin-bottom:20px}
+button{font:inherit; cursor:pointer; border:none}
+.btn{
+  flex:1; background:var(--accent); color:#fff; border-radius:14px; padding:13px 10px;
+  font-size:15px; font-weight:600;
+}
+.btn.ghost{background:#fff; color:var(--ink); border:1px solid var(--line)}
+.btn:active{transform:scale(.98)}
+
+/* Категории */
+.cats{display:flex; gap:7px; overflow-x:auto; padding-bottom:6px; margin-bottom:14px; scrollbar-width:none}
+.cats::-webkit-scrollbar{display:none}
+.chip{
+  white-space:nowrap; background:#fff; border:1px solid var(--line); color:var(--ink);
+  border-radius:999px; padding:9px 14px; font-size:14px;
+}
+.chip.on{background:var(--ink); color:#fff; border-color:var(--ink)}
+
+.cat-desc{font-size:13px; color:var(--muted); margin:-4px 0 12px; line-height:1.4}
+
+/* Список */
+.item{
+  background:var(--card); border:1px solid var(--line); border-radius:16px;
+  padding:14px 14px; margin-bottom:9px;
+}
+.item.used{opacity:.45}
+.item .head{display:flex; align-items:flex-start; gap:10px}
+.item .t{flex:1; font-size:15.5px; line-height:1.4; font-weight:500}
+.item.used .t{text-decoration:line-through}
+.item .show{
+  font-size:14px; line-height:1.5; color:#5C544D; margin-top:10px;
+  padding-top:10px; border-top:1px dashed var(--line); display:none;
+}
+.item.open .show{display:block}
+.acts{display:flex; gap:8px; margin-top:11px}
+.mini{
+  background:#F4EFE8; border-radius:10px; padding:7px 11px; font-size:13px; color:#6B625B;
+}
+.mini.on{background:var(--accent-soft); color:var(--accent); font-weight:600}
+.ico{font-size:17px; line-height:1; background:none; padding:2px 4px; opacity:.35}
+.ico.on{opacity:1}
+
+/* Вкладки */
+.tabs{display:flex; gap:8px; margin-bottom:16px}
+.tab{
+  flex:1; background:#fff; border:1px solid var(--line); color:var(--muted);
+  border-radius:14px; padding:12px; font-size:15px; font-weight:600;
+}
+.tab.on{background:var(--ink); color:#fff; border-color:var(--ink)}
+
+/* Календарь */
+.cal-note{font-size:13px; color:var(--muted); margin:-4px 0 14px; line-height:1.45}
+.ev{
+  background:var(--card); border:1px solid var(--line); border-radius:16px;
+  padding:14px; margin-bottom:9px; display:flex; gap:13px;
+}
+.ev.soon{border-color:var(--accent); background:linear-gradient(180deg,#fff,#FDF4EC)}
+.ev .date{
+  flex:0 0 58px; text-align:center; border-radius:12px; background:#F4EFE8;
+  padding:8px 4px; font-weight:700; line-height:1.15;
+}
+.ev.soon .date{background:var(--accent); color:#fff}
+.ev .date b{display:block; font-size:20px}
+.ev .date span{font-size:11px; font-weight:600; opacity:.75}
+.ev .body{flex:1}
+.ev .t{font-size:15.5px; font-weight:600; line-height:1.35}
+.ev .h{font-size:14px; color:#5C544D; line-height:1.5; margin-top:6px}
+.ev .go{
+  margin-top:10px; background:#F4EFE8; border-radius:10px; padding:7px 11px;
+  font-size:13px; color:#6B625B;
+}
+.fbtn{
+  flex:1; background:#fff; border:1px solid var(--line); color:var(--muted);
+  border-radius:12px; padding:10px 6px; font-size:13.5px; font-weight:600;
+}
+/* вкладки */
+.tabs{flex-wrap:wrap}
+.tab{flex:1 1 40%; font-size:14px; padding:11px 8px}
+
+/* контент-план */
+.planbar{display:flex; gap:8px; margin-bottom:14px}
+.pday{
+  background:var(--card); border:1px solid var(--line); border-radius:16px;
+  padding:14px 15px; margin-bottom:10px;
+}
+.pday.dated{border-color:var(--accent)}
+.pday .pt{font-size:15px; line-height:1.4; font-weight:500}
+.ptop{display:flex; gap:10px; align-items:flex-start}
+.ptitle{flex:1; font-weight:600; font-size:15.5px; line-height:1.35}
+.pday .pc{font-size:12.5px; color:var(--muted); margin-top:6px}
+.pday .del{
+  flex:0 0 28px; background:none; border:none; font-size:20px;
+  color:var(--muted); opacity:.4; padding:0; line-height:1; cursor:pointer;
+}
+.pdate{display:flex; align-items:center; gap:9px; margin-top:10px; flex-wrap:wrap}
+.pdate span{font-size:13px; color:var(--muted)}
+.pdate input{
+  font-family:inherit; font-size:14px; color:var(--ink); background:#F4EFE8;
+  border:1px solid var(--line); border-radius:10px; padding:7px 10px;
+}
+.pday.dated .pdate input{background:var(--accent-soft); border-color:var(--accent); color:var(--accent); font-weight:600}
+.dclear{background:none; border:none; font-size:13px; color:var(--muted); text-decoration:underline; cursor:pointer; padding:0}
+.pempty{
+  background:var(--card); border:1px dashed var(--line); border-radius:16px;
+  padding:26px 18px; text-align:center; color:var(--muted); font-size:14px; line-height:1.5;
+}
+
+/* инструкция */
+.how h3{font-size:17px; margin:22px 0 10px; letter-spacing:-.2px}
+.how p{font-size:14.5px; line-height:1.6; color:#5C544D; margin-bottom:12px}
+.how .box{
+  background:var(--card); border:1px solid var(--line); border-radius:16px;
+  padding:15px 16px; margin-bottom:11px; font-size:14.5px; line-height:1.55; color:#5C544D;
+}
+.how .box b{display:block; margin-bottom:6px; font-size:15px; color:var(--ink)}
+.how .step{display:flex; gap:11px; margin-bottom:12px; align-items:flex-start; font-size:14.5px; line-height:1.5; color:#5C544D}
+.how .step .n{
+  flex:0 0 26px; height:26px; border-radius:50%; background:var(--accent-soft);
+  color:var(--accent); font-size:13px; font-weight:700;
+  display:flex; align-items:center; justify-content:center;
+}
+.pshow{font-size:13.5px; line-height:1.5; color:var(--muted); margin-top:7px}
+.pnote{
+  display:block; width:100%; min-height:62px; resize:vertical; margin-top:9px;
+  font-family:inherit; font-size:14px; line-height:1.45; color:var(--ink);
+  background:#FFFDF9; border:1px solid var(--line); border-radius:11px;
+  padding:10px 11px; outline:none;
+}
+.pnote:focus{border-color:var(--accent)}
+.count{font-size:12px; color:var(--muted); margin:16px 0 8px; text-align:center}
+.foot{margin-top:26px; text-align:center; font-size:13px; color:var(--muted); line-height:1.6}
+.foot a{color:var(--accent); text-decoration:none; font-weight:600}
+.ctas{display:flex; flex-direction:column; gap:9px; margin-top:16px}
+.cta{
+  display:block; width:100%; background:var(--ink); color:#fff; border:none;
+  border-radius:14px; padding:15px; font-size:15px; font-weight:600; text-align:center;
+  text-decoration:none; cursor:pointer; font-family:inherit;
+}
+.cta.ghost{background:#fff; color:var(--ink); border:1px solid var(--line)}
+.cta:active{transform:scale(.99)}
+</style>
+</head>
+<body>
+
+<h1>Контентная</h1>
+<div class="sub">Здесь всегда есть идеи 🦁</div>
+
+<div class="tabs">
+  <button class="tab on" data-tab="ideas">💡 Идеи</button>
+  <button class="tab" data-tab="plan">🗓 План</button>
+  <button class="tab" data-tab="cal">📅 События сентября</button>
+  <button class="tab" data-tab="how">❓ Как</button>
+</div>
+
+<div id="tab-plan" style="display:none">
+  <div class="cal-note">Складывай сюда идеи из вкладки «Идеи» — приложение само расставит их по дням. Порядок можно менять, лишнее удалять.</div>
+  <div class="planbar">
+    <button class="fbtn" id="planClear">Очистить план</button>
+    <button class="fbtn" id="planDemo">Показать пример</button>
+  </div>
+  <div id="planList"></div>
+</div>
+
+<div id="tab-how" style="display:none">
+  <div id="howText"></div>
+</div>
+
+<div id="tab-cal" style="display:none">
+  <div class="cal-note" id="calNote"></div>
+  <div id="calList"></div>
+</div>
+
+<div id="tab-ideas">
+<div class="today" id="today"></div>
+<div class="row">
+  <button class="btn" id="dice">🎲 Другая идея</button>
+  <button class="btn ghost" id="toTop">К списку</button>
+</div>
+
+<div class="cats" id="cats"></div>
+<div class="cat-desc" id="catDesc"></div>
+<div id="list"></div>
+<div class="count" id="count"></div>
+</div>
+
+<div class="ctas">
+  <a class="cta" id="ctaTg" href="#">📣 Больше идей и разборов — в моём канале</a>
+  <button class="cta ghost" id="ctaShare">🔗 Поделиться приложением</button>
+</div>
+
+<div class="foot">
+  Идеи и методика — Юлия Липецкая<br>
+  <a href="https://instagram.com/juliya.lipa" target="_blank">@juliya.lipa</a>
+</div>
+
+<script src="ideas.js?v=21"></script>
+<script src="calendar.js?v=21"></script>
+<script>
+const tg = window.Telegram?.WebApp;
+if (tg) { tg.ready(); tg.expand(); }
+
+const KEY = 'idei_storis_v1';
+let state; try { state = JSON.parse(localStorage.getItem(KEY)) || {fav:[],used:[]}; }
+catch (e) { state = {fav:[],used:[]}; }
+if (!Array.isArray(state.fav)) state.fav = [];
+if (!Array.isArray(state.used)) state.used = [];
+if (!Array.isArray(state.plan)) state.plan = [];
+if (typeof state.notes !== 'object' || !state.notes) state.notes = {};
+if (typeof state.dates !== 'object' || !state.dates) state.dates = {};
+const save = () => localStorage.setItem(KEY, JSON.stringify(state));
+
+let filter = 'all';
+let diceIdx = null;
+
+// ——— идея дня: детерминированно по дате, без бэкенда ———
+function dayIndex(){
+  const d = new Date();
+  const n = Math.floor(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 86400000);
+  return n % IDEAS.length;
+}
+
+function renderToday(){
+  const i = diceIdx === null ? dayIndex() : diceIdx;
+  const it = IDEAS[i];
+  const c = CATS[it.c];
+  document.getElementById('today').innerHTML =
+    `<div class="label">${diceIdx === null ? 'Идея дня' : 'Случайная идея'}</div>
+     <div class="txt">${it.t}</div>
+     <div class="show"><b>Что показать:</b> ${it.s}</div>
+     <div class="cat">${c.emoji} ${c.name}</div>`;
+}
+
+function renderCats(){
+  const chips = [`<button class="chip ${filter==='all'?'on':''}" data-c="all">Все</button>`];
+  for (const k in CATS)
+    chips.push(`<button class="chip ${filter===k?'on':''}" data-c="${k}">${CATS[k].emoji} ${CATS[k].name}</button>`);
+  const el = document.getElementById('cats');
+  el.innerHTML = chips.join('');
+  el.querySelectorAll('.chip').forEach(b => b.onclick = () => { filter = b.dataset.c; renderCats(); renderList(); });
+  document.getElementById('catDesc').textContent = filter === 'all' ? '' : CATS[filter].desc;
+}
+
+function renderList(){
+  const list = document.getElementById('list');
+  list.innerHTML = '';
+  IDEAS.forEach((it, i) => {
+    if (filter !== 'all' && it.c !== filter) return;
+    const used = state.used.includes(i), fav = state.fav.includes(i);
+    const d = document.createElement('div');
+    d.className = 'item' + (used ? ' used' : '');
+    d.innerHTML =
+      `<div class="head">
+         <div class="t">${it.t}</div>
+         <button class="ico ${fav?'on':''}" data-a="fav">${fav?'★':'☆'}</button>
+       </div>
+       <div class="show"><b>Что показать:</b> ${it.s}</div>
+       <div class="acts">
+         <button class="mini" data-a="open">Что показать</button>
+         <button class="mini" data-a="plan">＋ в план</button>
+         <button class="mini ${used?'on':''}" data-a="used">${used?'✓ использовано':'Отметить'}</button>
+       </div>`;
+    d.querySelector('[data-a="open"]').onclick = () => d.classList.toggle('open');
+    d.querySelector('[data-a="plan"]').onclick = (e) => {
+      if (!state.plan.includes(i)) { state.plan.push(i); save(); renderPlan(); }
+      e.target.textContent = '✓ в плане';
+      setTimeout(() => { e.target.textContent = '＋ в план'; }, 1200);
+    };
+    d.querySelector('[data-a="fav"]').onclick = () => {
+      state.fav = fav ? state.fav.filter(x => x !== i) : [...state.fav, i];
+      save(); renderList();
+    };
+    d.querySelector('[data-a="used"]').onclick = () => {
+      state.used = used ? state.used.filter(x => x !== i) : [...state.used, i];
+      save(); renderList(); renderCount();
+    };
+    list.appendChild(d);
+  });
+}
+
+function renderEmpty(n){
+  if (n === 0) document.getElementById('list').innerHTML =
+    `<div class="item"><div class="t">Под этот фильтр идей нет. Попробуй другой формат или категорию.</div></div>`;
+}
+
+function renderCount(){
+  const u = state.used.length, f = state.fav.length;
+  document.getElementById('count').textContent =
+    (u || f) ? `Использовано ${u} · в избранном ${f}` : '';
+}
+
+document.getElementById('dice').onclick = () => {
+  let n; do { n = Math.floor(Math.random() * IDEAS.length); } while (n === diceIdx && IDEAS.length > 1);
+  diceIdx = n; renderToday(); window.scrollTo({top: 0, behavior: 'smooth'});
+};
+document.getElementById('toTop').onclick = () =>
+  document.getElementById('cats').scrollIntoView({behavior: 'smooth'});
+
+const CHANNEL = 'https://t.me/Juliya_Lipa';
+const APP_URL  = location.origin + location.pathname;
+
+document.getElementById('ctaTg').onclick = e => {
+  e.preventDefault();
+  if (tg?.openTelegramLink) tg.openTelegramLink(CHANNEL); else window.open(CHANNEL, '_blank');
+};
+
+document.getElementById('ctaShare').onclick = () => {
+  const text = 'Контентная — здесь всегда есть идеи:';
+  const url = `https://t.me/share/url?url=${encodeURIComponent(APP_URL)}&text=${encodeURIComponent(text)}`;
+  if (tg?.openTelegramLink) tg.openTelegramLink(url); else window.open(url, '_blank');
+};
+
+// ——— Контент-план ———
+const DAYS = ['вс','пн','вт','ср','чт','пт','сб'];
+
+function renderPlan(){
+  const el = document.getElementById('planList');
+  if (!state.plan.length){
+    el.innerHTML = `<div class="pempty">План пока пустой.<br>Открой вкладку «Идеи», выбери подходящие и нажми «＋ в план» — они появятся здесь.</div>`;
+    return;
+  }
+  el.innerHTML = '';
+  state.plan.forEach(idx => {
+    const it = IDEAS[idx]; if (!it) return;
+    const c = CATS[it.c];
+    const dt = state.dates[idx] || '';
+    const d = document.createElement('div');
+    d.className = 'pday' + (dt ? ' dated' : '');
+    d.innerHTML =
+      `<div class="pt">
+         <div class="ptop">
+           <div class="ptitle">${it.t}</div>
+           <button class="del">×</button>
+         </div>
+         <div class="pc">${c.emoji} ${c.name}</div>
+         <div class="pshow">${it.s}</div>
+         <textarea class="pnote" placeholder="📝 Твои пометки: о чём рассказать, что не забыть...">${(state.notes[idx]||'').replace(/</g,'&lt;')}</textarea>
+         <div class="pdate">
+           <span>Когда выложу:</span>
+           <input type="date" value="${dt}">
+           ${dt ? '<button class="dclear">убрать</button>' : ''}
+         </div>
+       </div>`;
+    d.querySelector('.del').onclick = () => {
+      state.plan = state.plan.filter(x => x !== idx);
+      delete state.dates[idx];
+      save(); renderPlan();
+    };
+    d.querySelector('.pnote').oninput = (e) => {
+      const v = e.target.value.trim();
+      if (v) state.notes[idx] = v; else delete state.notes[idx];
+      save();
+    };
+    d.querySelector('.pdate input').onchange = (e) => {
+      if (e.target.value) state.dates[idx] = e.target.value;
+      else delete state.dates[idx];
+      save(); renderPlan();
+    };
+    const dc = d.querySelector('.dclear');
+    if (dc) dc.onclick = () => { delete state.dates[idx]; save(); renderPlan(); };
+    el.appendChild(d);
+  });
+}
+
+document.getElementById('planClear').onclick = () => { state.plan = []; state.dates = {}; save(); renderPlan(); };
+document.getElementById('planDemo').onclick = () => {
+  // пример недели: чередуем типы контента
+  const pick = c => IDEAS.findIndex(x => x.c === c);
+  const demo = [pick('lich'), pick('expert'), pick('vovlech'), pick('lich'),
+                pick('expert'), pick('sell'), pick('lich')].filter(x => x >= 0);
+  state.plan = [...new Set(demo)]; save(); renderPlan();
+};
+
+// ——— Как пользоваться ———
+function renderHow(){
+  document.getElementById('howText').innerHTML = `
+  <div class="how">
+    <p>Это не просто список идей, а рабочая система. Вот как ей пользоваться, чтобы контент шёл ровно.</p>
+
+    <h3>1. Чередуй типы контента</h3>
+    <p>Не выкладывай подряд три экспертных или три продающих поста — аудитория устанет. Рабочая схема на неделю:</p>
+    <div class="box"><b>Пример недели</b>
+      понедельник — личное · вторник — экспертное · среда — вовлекающее ·
+      четверг — личное · пятница — экспертное · суббота — продающее · воскресенье — личное
+    </div>
+    <p>Личного всегда больше: именно оно делает блог живым и держит доверие.</p>
+
+    <h3>2. Если делаешь прогрев</h3>
+    <p>Прогрев — это не «продай в последний день», а последовательность:</p>
+    <div class="step"><div class="n">1</div><div>Расскажи про событие или ситуацию, которая всё запустила</div></div>
+    <div class="step"><div class="n">2</div><div>Введи в контекст: что было до, почему это важно</div></div>
+    <div class="step"><div class="n">3</div><div>Покажи результаты — свои или клиентов, лучше в цифрах</div></div>
+    <div class="step"><div class="n">4</div><div>Сделай призыв: один понятный шаг, а не три варианта</div></div>
+
+    <h3>3. Как работать с приложением</h3>
+    <div class="step"><div class="n">1</div><div>Утром открой «Идею дня» или крути кубик, пока не зацепит</div></div>
+    <div class="step"><div class="n">2</div><div>Проверь вкладку «Поводы» — вдруг сегодня подходящая дата</div></div>
+    <div class="step"><div class="n">3</div><div>Нажми «＋ в план» на тех идеях, что откликнулись</div></div>
+    <div class="step"><div class="n">4</div><div>Снял и выложил — отметь идею как использованную, чтобы не повторяться</div></div>
+
+    <h3>4. Три правила, без которых не работает</h3>
+    <div class="box"><b>Не жди вдохновения</b> Идея — это только повод. Дальше нужна съёмка, а она случается по расписанию, а не по настроению.</div>
+    <div class="box"><b>Одна идея — один смысл</b> Не пытайся впихнуть в одну публикацию всё, что знаешь. Разбей на несколько.</div>
+    <div class="box"><b>Личное важнее идеального</b> Живая история с ошибкой соберёт больше, чем безупречный экспертный пост.</div>
+  </div>`;
+}
+
+// ——— Календарь инфоповодов ———
+function renderCal(){
+  const now = new Date();
+  const todayKey = String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0');
+  const soonLimit = new Date(now.getTime() + 7*86400000);
+
+  document.getElementById('calNote').textContent =
+    `Даты, вокруг которых легко собрать контент. Календарь на ${CAL_UPDATED}, обновляю каждый месяц.`;
+
+  const upcoming = EVENTS.filter(e => e.d >= todayKey);
+  const list = upcoming.length ? upcoming : EVENTS;   // месяц кончился — показываем всё
+  const el = document.getElementById('calList');
+  el.innerHTML = '';
+
+  list.forEach(e => {
+    const [mm, dd] = e.d.split('-').map(Number);
+    const date = new Date(now.getFullYear(), mm-1, dd);
+    const soon = date >= new Date(now.getFullYear(), now.getMonth(), now.getDate()) && date <= soonLimit;
+    const d = document.createElement('div');
+    d.className = 'ev' + (soon ? ' soon' : '');
+    d.innerHTML =
+      `<div class="date"><b>${dd}</b><span>${MONTHS[mm-1].slice(0,3)}</span></div>
+       <div class="body">
+         <div class="t">${e.t}</div>
+         <div class="h">${e.h}</div>
+         <button class="go" data-c="${e.cat}">Идеи в тему →</button>
+       </div>`;
+    d.querySelector('.go').onclick = () => {
+      filter = e.cat;
+      switchTab('ideas');
+      renderCats(); renderList();
+      document.getElementById('cats').scrollIntoView({behavior:'smooth'});
+    };
+    el.appendChild(d);
+  });
+}
+
+function switchTab(name){
+  document.querySelectorAll('.tab').forEach(b => b.classList.toggle('on', b.dataset.tab === name));
+  document.getElementById('tab-ideas').style.display = name === 'ideas' ? '' : 'none';
+  document.getElementById('tab-plan').style.display  = name === 'plan'  ? '' : 'none';
+  document.getElementById('tab-how').style.display   = name === 'how'   ? '' : 'none';
+  document.getElementById('tab-cal').style.display   = name === 'cal'   ? '' : 'none';
+  if (name === 'plan') renderPlan();
+  document.querySelector('.ctas').style.display       = name === 'ideas' ? 'flex' : 'none';
+}
+document.querySelectorAll('.tab').forEach(b => b.onclick = () => switchTab(b.dataset.tab));
+
+renderToday(); renderCats(); renderList(); renderCount(); renderPlan(); renderHow();
+try { renderCal(); } catch (e) { document.getElementById('calNote').textContent = 'Календарь не загрузился, обнови страницу.'; }
+</script>
+</body>
+</html>
