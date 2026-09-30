@@ -185,7 +185,7 @@ button{font:inherit; cursor:pointer; border:none}
 <div class="tabs">
   <button class="tab on" data-tab="ideas">💡 Идеи</button>
   <button class="tab" data-tab="plan">🗓 План</button>
-  <button class="tab" data-tab="cal">📅 События сентября</button>
+  <button class="tab" data-tab="cal">📅 События октября</button>
   <button class="tab" data-tab="how">❓ Как</button>
 </div>
 
@@ -449,6 +449,10 @@ function renderCal(){
 
   document.getElementById('calNote').textContent =
     `Даты, вокруг которых легко собрать контент. Календарь на ${CAL_UPDATED}, обновляю каждый месяц.`;
+
+  // название вкладки — по месяцу из календаря, чтобы не править руками
+  if (EVENTS.length) document.querySelector('.tab[data-tab="cal"]').textContent =
+    '📅 События ' + MONTHS[Number(EVENTS[0].d.slice(0,2)) - 1];
 
   const upcoming = EVENTS.filter(e => e.d >= todayKey);
   const list = upcoming.length ? upcoming : EVENTS;   // месяц кончился — показываем всё
